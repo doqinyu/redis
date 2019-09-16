@@ -660,14 +660,17 @@ typedef struct RedisModuleDigest {
 #define LRU_CLOCK_RESOLUTION 1000 /* LRU clock resolution in ms */
 
 #define OBJ_SHARED_REFCOUNT INT_MAX
+/**
+ * Redis 对象头结构体
+ */
 typedef struct redisObject {
-    unsigned type:4;
-    unsigned encoding:4;
-    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+    unsigned type:4; // 4 bits 。类型。
+    unsigned encoding:4; // 4 bits 。同一类型(type) 会有不同的存储形式。
+    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or // LRU 时，最后访问时间
                             * LFU data (least significant 8 bits frequency
-                            * and most significant 16 bits access time). */
-    int refcount;
-    void *ptr;
+                            * and most significant 16 bits access time). */ // 24 BITS
+    int refcount; // 32 bits = 4 bytes ，对象的引用计数。当引用为零时，对象就会被销毁，内存南北回收。
+    void *ptr; // 64 bits = 8 bytes ，如果是 64 位的操作系统。指向对象内容(body) 的具体存储位置。
 } robj;
 
 /* The a string name for an object's type as listed above

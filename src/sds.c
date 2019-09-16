@@ -391,17 +391,29 @@ sds sdsgrowzero(sds s, size_t len) {
 
 /* Append the specified binary-safe string pointed by 't' of 'len' bytes to the
  * end of the specified sds string 's'.
+ * 将 t 字符串的 len 长度，追加到当前字符串的末尾
  *
  * After the call, the passed sds string is no longer valid and all the
- * references must be substituted with the new pointer returned by the call. */
+ * references must be substituted with the new pointer returned by the call.
+ * 当调用完成后，当前字符串，必须指向返回的新的字符串。原因是，可能扩容导致，产生新的字符串
+ * */
 sds sdscatlen(sds s, const void *t, size_t len) {
+    // 获得当前字符串长度
     size_t curlen = sdslen(s);
 
+    // 按需调整空间。
+    // 如果 capacity 不够容纳追加的内容，就会重新分配字节数组并复制原字符串的内容到新数组
     s = sdsMakeRoomFor(s,len);
+    // 需要扩容，但是内容不够，导致分配失败。
     if (s == NULL) return NULL;
+
+    // 追加目标字符串的内容到字节数组中
     memcpy(s+curlen, t, len);
+    // 设置追加后的长度值
     sdssetlen(s, curlen+len);
+    // 让字符串以\0 结尾，便于调试打印，还可以直接使用 glibc 的字符串函数进行操作
     s[curlen+len] = '\0';
+    // 返回新的指向
     return s;
 }
 
