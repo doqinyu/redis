@@ -1403,13 +1403,19 @@ dictType replScriptCacheDictType = {
     NULL                        /* val destructor */
 };
 
+/**
+ * 字典是否需要缩容
+ *
+ * @param dict 字典
+ * @return 是否需要
+ */
 int htNeedsResize(dict *dict) {
     long long size, used;
 
     size = dictSlots(dict);
     used = dictSize(dict);
-    return (size > DICT_HT_INITIAL_SIZE &&
-            (used*100/size < HASHTABLE_MIN_FILL));
+    return (size > DICT_HT_INITIAL_SIZE && // 一维数组大于字典初始数组大小
+            (used*100/size < HASHTABLE_MIN_FILL)); // 元素个数小于一维数组的 1/10
 }
 
 /* If the percentage of used slots in the HT reaches HASHTABLE_MIN_FILL
@@ -1673,6 +1679,7 @@ void clientsCron(void) {
 /* This function handles 'background' operations we are required to do
  * incrementally in Redis databases, such as active key expiring, resizing,
  * rehashing. */
+// TODO 芋艿 定时任务
 void databasesCron(void) {
     /* Expire keys by random sampling. Not required for slaves
      * as master will synthesize DELs for us. */
@@ -1710,6 +1717,7 @@ void databasesCron(void) {
         }
 
         /* Rehash */
+        // TODO 芋艿：定时 hash
         if (server.activerehashing) {
             for (j = 0; j < dbs_per_call; j++) {
                 int work_done = incrementallyRehash(rehash_db);

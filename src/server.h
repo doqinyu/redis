@@ -700,14 +700,17 @@ typedef struct clientReplyBlock {
 
 /* Redis database representation. There are multiple databases identified
  * by integers from 0 (the default database) up to the max configured
- * database. The database number is the 'id' field in the structure. */
+ * database. The database number is the 'id' field in the structure.
+ *
+ * Redis DB 结构体
+ * */
 typedef struct redisDb {
-    dict *dict;                 /* The keyspace for this DB */
-    dict *expires;              /* Timeout of keys with a timeout set */
+    dict *dict;                 /* The keyspace for this DB */ // key => value 字典
+    dict *expires;              /* Timeout of keys with a timeout set */ // key => 过期时间的字典
     dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)*/
     dict *ready_keys;           /* Blocked keys that received a PUSH */
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
-    int id;                     /* Database ID */
+    int id;                     /* Database ID */ // 编号
     long long avg_ttl;          /* Average TTL, just for stats */
     list *defrag_later;         /* List of key names to attempt to defrag one by one, gradually. */
 } redisDb;
@@ -931,8 +934,11 @@ typedef struct zskiplist {
     int level;
 } zskiplist;
 
+/**
+ * zset （有序集合）结构体
+ */
 typedef struct zset {
-    dict *dict;
+    dict *dict; // key => score 的字典
     zskiplist *zsl;
 } zset;
 

@@ -289,16 +289,19 @@ int dictAdd(dict *d, void *key, void *val)
  *
  * If key was added, the hash entry is returned to be manipulated by the caller.
  */
+// TODO 芋艿：添加元素。后续可以细看下。
 dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
 {
     long index;
     dictEntry *entry;
     dictht *ht;
 
+    // 是否正在 rehash 迁移中。如果是，则进行小步搬运
     if (dictIsRehashing(d)) _dictRehashStep(d);
 
     /* Get the index of the new element, or -1 if
      * the element already exists. */
+    // TODO 芋艿，获得
     if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
         return NULL;
 
@@ -306,10 +309,15 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
      * Insert the element in top, with the assumption that in a database
      * system it is more likely that recently added entries are accessed
      * more frequently. */
+    // 是否正在 rehash 前一种，则选择 ht1 ，否则选择 ht0
     ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
+    // 创建 Entry
     entry = zmalloc(sizeof(*entry));
+    // 新创建的 Entry ，指向 index 位置的 Entry 头。因为，越后面添加的值，可能后续被访问的频繁，从概率上说。
     entry->next = ht->table[index];
+    // index 位置的 Entry ，替换成新创建的
     ht->table[index] = entry;
+    // 字典的元素 + 1
     ht->used++;
 
     /* Set the hash entry fields. */
@@ -943,6 +951,12 @@ unsigned long dictScan(dict *d,
 /* ------------------------- private functions ------------------------------ */
 
 /* Expand the hash table if needed */
+/**
+ * 判断是否要扩容
+ *
+ * @param d 字典
+ * @return 是否成功
+ */
 static int _dictExpandIfNeeded(dict *d)
 {
     /* Incremental rehashing already in progress. Return. */
@@ -955,11 +969,11 @@ static int _dictExpandIfNeeded(dict *d)
      * table (global setting) or we should avoid it but the ratio between
      * elements/buckets is over the "safe" threshold, we resize doubling
      * the number of buckets. */
-    if (d->ht[0].used >= d->ht[0].size &&
-        (dict_can_resize ||
-         d->ht[0].used/d->ht[0].size > dict_force_resize_ratio))
+    if (d->ht[0].used >= d->ht[0].size && // 条件一：当 hash 表中的元素，大于等于一维数组的大小时，说明即无冲突，每个格子都有元素，所以需要进行扩容。
+        (dict_can_resize || // 条件二（第一种）：字典可以变更大小。如果 Redis 正在做 bgsave ，为了减少内存页的过多分离（COW），Redis 尽量不去扩容。
+         d->ht[0].used/d->ht[0].size > dict_force_resize_ratio)) // 条件二（第二种）：hash 表中的元素是一维数组的 5 倍时，强制扩容。
     {
-        return dictExpand(d, d->ht[0].used*2);
+        return dictExpand(d, d->ht[0].used*2); // 两倍扩容
     }
     return DICT_OK;
 }
