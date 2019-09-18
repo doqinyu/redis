@@ -32,10 +32,13 @@
 #define __INTSET_H
 #include <stdint.h>
 
+/**
+ * 整数 set 集合结构体
+ */
 typedef struct intset {
-    uint32_t encoding;
-    uint32_t length;
-    int8_t contents[];
+    uint32_t encoding; // 决定整数位宽是 16 位、32 位、64 位。
+    uint32_t length; // 元素个数
+    int8_t contents[]; // 整数数组，可以是 16 位、32 位和 64 位。
 } intset;
 
 intset *intsetNew(void);

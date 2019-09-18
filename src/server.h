@@ -919,19 +919,20 @@ struct sharedObjectsStruct {
 
 /* ZSETs use a specialized version of Skiplists */
 typedef struct zskiplistNode {
-    sds ele;
-    double score;
-    struct zskiplistNode *backward;
+    sds ele; // key
+    double score; // score
+    struct zskiplistNode *backward; // 回溯指针，即前一个节点
     struct zskiplistLevel {
-        struct zskiplistNode *forward;
-        unsigned long span;
-    } level[];
+        struct zskiplistNode *forward; // 每一层的指向
+        unsigned long span; // 跨度，表示从前一个节点沿着当前层的 forward 指针跳到当前这个节点中间会跳过多少个节点。
+    } level[]; // 多层连接指针
 } zskiplistNode;
 
 typedef struct zskiplist {
-    struct zskiplistNode *header, *tail;
-    unsigned long length;
-    int level;
+    struct zskiplistNode *header, // 头指针
+            *tail; // 尾指针
+    unsigned long length; // 总元素数量
+    int level; // 最高层级
 } zskiplist;
 
 /**
@@ -939,7 +940,7 @@ typedef struct zskiplist {
  */
 typedef struct zset {
     dict *dict; // key => score 的字典
-    zskiplist *zsl;
+    zskiplist *zsl; // 跳跃表
 } zset;
 
 typedef struct clientBufferLimitsConfig {

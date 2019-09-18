@@ -8,7 +8,7 @@
  *
  * ----------------------------------------------------------------------------
  *
- * ZIPLIST OVERALL LAYOUT
+ * ZIPLIST OVE
  * ======================
  *
  * The general layout of the ziplist is as follows:
@@ -134,7 +134,7 @@
  * composed of exactly two bytes. The entry itself, F6, is encoded exactly
  * like the first entry, and 6-1 = 5, so the value of the entry is 5.
  * Finally the special entry FF signals the end of the ziplist.
- *
+ *RALL LAYOUT
  * Adding another element to the above string with the value "Hello World"
  * allows us to show how the ziplist encodes small strings. We'll just show
  * the hex dump of the entry itself. Imagine the bytes as following the
@@ -613,6 +613,7 @@ unsigned char *ziplistResize(unsigned char *zl, unsigned int len) {
  *
  * The pointer "p" points to the first entry that does NOT need to be
  * updated, i.e. consecutive fields MAY need an update. */
+// TODO 芋艿：细读
 unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p) {
     size_t curlen = intrev32ifbe(ZIPLIST_BYTES(zl)), rawlen, rawlensize;
     size_t offset, noffset, extra;
@@ -629,13 +630,16 @@ unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p) {
         zipEntry(p+rawlen, &next);
 
         /* Abort when "prevlen" has not changed. */
+        // prevlen 的长度没有变，中断级联更新
         if (next.prevrawlen == rawlen) break;
 
         if (next.prevrawlensize < rawlensize) {
             /* The "prevlen" field of "next" needs more bytes to hold
              * the raw length of "cur". */
+            // 级联拓展
             offset = p-zl;
             extra = rawlensize-next.prevrawlensize;
+            // 扩大内存
             zl = ziplistResize(zl,curlen+extra);
             p = zl+offset;
 
@@ -644,12 +648,14 @@ unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p) {
             noffset = np-zl;
 
             /* Update tail offset when next element is not the tail element. */
+            // 更新 zltail_offset 指针 TODO 芋艿。貌似没这个属性
             if ((zl+intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl))) != np) {
                 ZIPLIST_TAIL_OFFSET(zl) =
                     intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl))+extra);
             }
 
             /* Move the tail to the back. */
+            // 移动内存
             memmove(np+rawlensize,
                 np+next.prevrawlensize,
                 curlen-noffset-next.prevrawlensize-1);
@@ -662,8 +668,11 @@ unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p) {
             if (next.prevrawlensize > rawlensize) {
                 /* This would result in shrinking, which we want to avoid.
                  * So, set "rawlen" in the available bytes. */
+                // 级联收缩，不过这里可以不用收缩了，因为 5 个字节也是可以存储 1 个字节的内容的
+                // 虽然有点浪费，但是级联更新实在是太可怕了，所以浪费就浪费吧
                 zipStorePrevEntryLengthLarge(p+rawlen,rawlen);
             } else {
+                // 大小没变，改个长度值就完事了
                 zipStorePrevEntryLength(p+rawlen,rawlen);
             }
 
