@@ -390,3 +390,7 @@ int main (int argc, char **argv) {
   return (status || s.status) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
+//int main(int argc, char **argv) {
+//    printf("hello");
+//}
+

@@ -162,7 +162,18 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {
      * caller of zslInsert() should test in the hash table if the element is
      * already inside or not. */
     // 随机一个层级
-    level = zslRandomLevel();
+    //level = zslRandomLevel();
+    if (strcmp(ele, "o1") == 0) {
+        level = 1;
+    } else if (strcmp(ele, "o2") == 0) {
+        level = 2;
+    } else if (strcmp(ele, "o3") == 0) {
+        level = 3;
+    } else if (strcmp(ele, "o4") == 0) {
+        level = 4;
+    } else if (strcmp(ele, "o5") == 0) {
+        level = 5;
+    }
     // TODO 芋艿 span
     if (level > zsl->level) {
         for (i = zsl->level; i < level; i++) {
